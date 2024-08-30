@@ -153,13 +153,3 @@ a:hover {
 .transition-controls button:hover {
     background-color: #0056b3;
 }
-
-#transition-form {
-    display: flex;
-    flex-direction: column;
-}
-
-#transition-message {
-    margin-top: 10px;
-    font-size: 14px;
-}
