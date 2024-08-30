@@ -2,6 +2,7 @@ document.getElementById('video-file').addEventListener('change', handleFileSelec
 document.getElementById('audio-file').addEventListener('change', handleAudioSelect);
 document.getElementById('trim-form').addEventListener('submit', handleTrimSubmit);
 document.getElementById('audio-form').addEventListener('submit', handleAudioSubmit);
+document.getElementById('transition-form').addEventListener('submit', handleTransitionSubmit);
 
 let videoElement = document.getElementById('video-preview');
 let startTimeInput = document.getElementById('start-time');
@@ -69,6 +70,11 @@ async function handleAudioSubmit(event) {
 
     const result = await response.json();
 
+    if (result.error) {
+        alert(result.error);
+        return;
+    }
+
     videoElement.src = result.fileUrl;
     videoElement.style.display = 'block';
     
@@ -76,10 +82,6 @@ async function handleAudioSubmit(event) {
     downloadLink.href = result.fileUrl;
     downloadLink.style.display = 'inline';
 }
-
-// Update video preview dynamically based on input changes
-startTimeInput.addEventListener('input', updatePreview);
-endTimeInput.addEventListener('input', updatePreview);
 
 // Reset button functionality for video
 document.getElementById('reset-times').addEventListener('click', () => {
@@ -93,12 +95,31 @@ document.getElementById('reset-times').addEventListener('click', () => {
 });
 
 // Reset button functionality for audio
-document.getElementById('reset-audio-times').addEventListener('click', () => {
+document.getElementById('reset-audio-times').addEventListener('click', async () => {
     audioStartTimeInput.value = '';
     audioEndTimeInput.value = '';
-    if (originalAudioURL) {
-        // Optionally reset audio preview if implemented
+
+    const response = await fetch('/remove_audio', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ video_path: trimmedVideoURL })
+    });
+
+    const result = await response.json();
+
+    if (result.error) {
+        alert(result.error);
+        return;
     }
+
+    videoElement.src = result.fileUrl;
+    videoElement.style.display = 'block';
+    
+    const downloadLink = document.getElementById('download-link');
+    downloadLink.href = result.fileUrl;
+    downloadLink.style.display = 'inline';
 });
 
 function updatePreview() {
@@ -131,65 +152,13 @@ document.getElementById('preview-transition').addEventListener('click', previewT
 
 async function setTransition(type) {
     selectedTransition = type;
-}
-
-function previewTransition() {
-    const startTime = parseFloat(document.getElementById('transition-start-time').value) || 0;
-
-    if (videoElement.src) {
-        videoElement.currentTime = startTime;
-        videoElement.play();
-    }
-}
-
-document.getElementById('transition-form').addEventListener('submit', async function(event) {
-    event.preventDefault();
-
-    const transitionType = selectedTransition;
-    const startTime = parseFloat(document.getElementById('transition-start-time').value) || 0;
-
-    if (transitionType && videoElement.src) {
-        const formData = new FormData();
-        formData.append('transition', transitionType);
-        formData.append('start', startTime);
-        formData.append('video', trimmedVideoURL); // Use trimmed video URL
-
-        const response = await fetch('/apply_transition', {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-
-        videoElement.src = result.fileUrl;
-        videoElement.style.display = 'block';
-        
-        const downloadLink = document.getElementById('download-link');
-        downloadLink.href = result.fileUrl;
-        downloadLink.style.display = 'inline';
-    }
-});
-document.getElementById('fade-transition').addEventListener('click', () => {
-    setTransition('fade');
-});
-document.getElementById('flip-transition').addEventListener('click', () => {
-    setTransition('flip');
-});
-document.getElementById('rotate-transition').addEventListener('click', () => {
-    setTransition('rotate');
-});
-
-document.getElementById('preview-transition').addEventListener('click', previewTransition);
-
-async function setTransition(type) {
-    selectedTransition = type;
-    document.getElementById('transition-warning').style.display = 'none'; // Hide warning
+    document.getElementById('transition-message').style.display = 'none'; // Hide warning
 }
 
 function previewTransition() {
     if (!selectedTransition) {
-        document.getElementById('transition-warning').style.display = 'block';
-        document.getElementById('transition-warning').innerText = 'Please select a transition';
+        document.getElementById('transition-message').style.display = 'block';
+        document.getElementById('transition-message').innerText = 'Please select a transition';
         return;
     }
 
@@ -209,12 +178,12 @@ function previewTransition() {
     }
 }
 
-document.getElementById('transition-form').addEventListener('submit', async function(event) {
+async function handleTransitionSubmit(event) {
     event.preventDefault();
 
     if (!selectedTransition) {
-        document.getElementById('transition-warning').style.display = 'block';
-        document.getElementById('transition-warning').innerText = 'Please select a transition';
+        document.getElementById('transition-message').style.display = 'block';
+        document.getElementById('transition-message').innerText = 'Please select a transition';
         return;
     }
 
@@ -242,21 +211,4 @@ document.getElementById('transition-form').addEventListener('submit', async func
     const downloadLink = document.getElementById('download-link');
     downloadLink.href = result.fileUrl;
     downloadLink.style.display = 'inline';
-});
-function previewTransition() {
-    const startTime = parseFloat(document.getElementById('transition-start-time').value) || 0;
-    const endTime = parseFloat(document.getElementById('transition-end-time').value) || videoElement.duration;
-
-    if (videoElement.src) {
-        videoElement.currentTime = startTime;
-        videoElement.play();
-
-        // Update video element to show the transition
-        videoElement.addEventListener('seeked', () => {
-            if (videoElement.currentTime >= endTime) {
-                videoElement.pause();
-                videoElement.currentTime = startTime;
-            }
-        });
-    }
 }
