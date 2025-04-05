@@ -1,5 +1,7 @@
 from flask import Flask, request, jsonify, send_file, render_template
+from moviepy.editor import VideoFileClip, concatenate_videoclips
 import os
+from moviepy.video.fx import all as vfx
 from moviepy.editor import VideoFileClip, AudioFileClip
 
 app = Flask(__name__)
@@ -83,6 +85,40 @@ def remove_audio():
 @app.route('/download/<filename>')
 def download_file(filename):
     return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+@app.route('/apply_transition', methods=['POST'])
+def apply_transition():
+    video_path = request.form['video']
+    transition_type = request.form['transition']
+    start_time = float(request.form['start'])
+    end_time = float(request.form['end'])
+
+    # Load the original video
+    video = VideoFileClip(video_path)
+
+    # Split the video into three parts: before, during, and after the transition
+    before_transition = video.subclip(0, start_time)
+    transition_clip = video.subclip(start_time, end_time)
+    after_transition = video.subclip(end_time, video.duration)
+
+    # Apply the selected transition
+    if transition_type == 'fade':
+        transition_clip = transition_clip.fadein(1).fadeout(1)
+    elif transition_type == 'flip':
+        transition_clip = transition_clip.fx(vfx.mirror_x)
+    elif transition_type == 'rotate':
+        transition_clip = transition_clip.rotate(180)
+    else:
+        return jsonify({'error': 'Invalid transition type'}), 400
+
+    # Concatenate the clips
+    final_clip = concatenate_videoclips([before_transition, transition_clip, after_transition])
+
+    # Save the final video
+    output_path = os.path.join(app.config['UPLOAD_FOLDER'], 'output_video.mp4')
+    final_clip.write_videofile(output_path, codec='libx264')
+
+    return jsonify({'fileUrl': f'/download/{os.path.basename(output_path)}'})
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -191,7 +191,9 @@ async function handleTransitionSubmit(event) {
     formData.append('transition', selectedTransition);
     formData.append('start', document.getElementById('transition-start-time').value);
     formData.append('end', document.getElementById('transition-end-time').value);
-    formData.append('video', trimmedVideoURL); // Use trimmed video URL
+    const serverVideoPath = trimmedVideoURL.replace('/download/', 'uploads/'); // Get server-side path
+    formData.append('video', serverVideoPath);
+    
 
     const response = await fetch('/apply_transition', {
         method: 'POST',
