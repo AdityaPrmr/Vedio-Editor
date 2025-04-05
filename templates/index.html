@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Editor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div id="video-panel" class="panel">
+            <video id="video-preview" controls></video>
+        </div>
+        <div id="inspector-panel" class="panel">
+            <h1>Video Editor</h1>
+            
+            <h2>Trim Video</h2>
+            <form id="trim-form">
+                <input type="file" id="video-file" name="video" accept="video/*" required>
+                <div class="time-controls">
+                    <input type="number" id="start-time" name="start" placeholder="Start Time (seconds)" required>
+                    <input type="number" id="end-time" name="end" placeholder="End Time (seconds)" required>
+                    <button type="button" id="reset-times">Reset</button>
+                </div>
+                <button type="submit">Trim Video</button>
+            </form>
+            
+            <h2>Add Audio</h2>
+            <form id="audio-form">
+                <input type="file" id="audio-file" name="audio" accept="audio/*" required>
+                <div class="audio-controls">
+                    <input type="number" id="audio-start-time" name="audio-start" placeholder="Audio Start Time (seconds)" required>
+                    <input type="number" id="audio-end-time" name="audio-end" placeholder="Audio End Time (seconds)" required>
+                    <button type="button" id="reset-audio-times">Reset</button>
+                </div>
+                <button type="submit">Add Audio to Video</button>
+            </form>
+
+            <h2>Apply Transition</h2>
+            <div class="transition-controls">
+                <button type="button" id="fade-transition">Fade</button>
+                <button type="button" id="flip-transition">Flip</button>
+                <button type="button" id="rotate-transition">Rotate</button>
+            </div>
+            <form id="transition-form">
+                <label for="transition-start-time">Transition Start Time:</label>
+                <input type="number" id="transition-start-time" name="transition-start" placeholder="Start Time (seconds)" required>
+                <label for="transition-end-time">Transition End Time:</label>
+                <input type="number" id="transition-end-time" name="transition-end" placeholder="End Time (seconds)" required>
+                <button type="button" id="preview-transition">Preview Transition</button>
+                <button type="submit">Add Transition</button>
+            </form>
+
+            <p id="transition-message" style="display: none; color: red;">Please select a transition.</p>
+
+            <a id="download-link" href="#" style="display: none;">Download Edited Video</a>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
+    <!-- <script src="{{ url_for('static', filename='draggable-resizable.js') }}"></script> -->
+</body>
+</html>
